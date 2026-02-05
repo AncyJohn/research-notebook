@@ -3,7 +3,7 @@ project_name: "titanic-baseline"
 experiment_version: "v1.1-stable"
 
 data:
-  raw_path: "../../train.csv"
+  raw_path: "../../../train.csv"
   target: "Survived"
   drop_columns: ['PassengerId', 'Name', 'Ticket', 'Cabin']
 
