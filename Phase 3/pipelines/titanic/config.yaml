@@ -1,0 +1,29 @@
+# Titanic Experiment Configuration
+project_name: "titanic-baseline"
+experiment_version: "v1.1-stable"
+
+data:
+  raw_path: "../../train.csv"
+  target: "Survived"
+  drop_columns: ['PassengerId', 'Name', 'Ticket', 'Cabin']
+
+train_params:
+  seed: 42  # Tested with 43, stable
+  test_size: 0.2
+  batch_size: 256 # Best performing batch size
+  lr: 0.001       # 1e-3 Best result
+  weight_decay: 0.01
+  epochs: 100
+  patience: 10    # Early stopping
+  scheduler_factor: 0.5
+  scheduler_patience: 5
+
+model_params:
+  hidden_dim: 16
+  dropout: 0.1
+
+outputs:
+  model_path: "best_model.pt"
+  stats_path: "train_stats.joblib"
+  plot_path: "loss_curve.png"
+  results_path: "evaluation_metrics.json"
