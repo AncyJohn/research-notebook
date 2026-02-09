@@ -127,7 +127,8 @@ class EarlyStopping:
         if self.best_loss is None or val_loss < self.best_loss:
             print(f"✅ Validation loss decreased ({self.best_loss} --> {val_loss:.4f}). Saving model...")
             self.best_loss = val_loss
-            torch.save(model.state_dict(), self.path)
+            torch.save(model.state_dict(), 
+                       "phase3/pipelines/titanic/artifacts/models/mlp.pt")
             self.counter = 0
         else:
             self.counter += 1

@@ -23,7 +23,11 @@ model_params:
   dropout: 0.1
 
 outputs:
-  model_path: "best_model.pt"
-  stats_path: "train_stats.joblib"
-  plot_path: "loss_curve.png"
-  results_path: "evaluation_metrics.json"
+  # Base directory for this version's outputs
+  artifacts_dir: "phase3/pipelines/titanic/artifacts"
+
+  # Specific file paths
+  model_path: "phase3/pipelines/titanic/artifacts/models/mlp.pt"
+  stats_path: "phase3/pipelines/titanic/artifacts/models/train_stats.joblib"
+  metrics_path: "phase3/pipelines/titanic/artifacts/metrics/metrics.json"
+  plot_path: "phase3/pipelines/titanic/artifacts/plots/loss_curve.png"
