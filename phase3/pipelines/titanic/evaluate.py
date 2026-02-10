@@ -9,9 +9,10 @@ from sklearn.metrics import accuracy_score, classification_report
 from train import PreprocessingDataset, BaselineNet 
 
 def evaluate():
-    Path(config['outputs']['metrics_path']).parent.mkdir(parents=True, exist_ok=True)
     with open("config.yaml", "r") as f: 
         config = yaml.safe_load(f)
+
+    Path(config['outputs']['metrics_path']).parent.mkdir(parents=True, exist_ok=True)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
