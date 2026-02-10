@@ -128,7 +128,7 @@ class EarlyStopping:
     def __call__(self, val_loss, model):
         # print(f"DEBUG: val_loss={val_loss:.4f}, best_loss={self.best_loss}")
         if self.best_loss is None or val_loss < self.best_loss:
-            print(f"✅ Validation loss decreased ({self.best_loss} --> {val_loss:.4f}). Saving model...")
+            logging.info(f"✅ Validation loss decreased ({self.best_loss} --> {val_loss:.4f}). Saving model...")
             self.best_loss = val_loss
 
             # 1. Ensure the directory exists before saving
@@ -138,7 +138,7 @@ class EarlyStopping:
             self.counter = 0
         else:
             self.counter += 1
-            print(f"⚠️ No improvement. EarlyStopping counter: {self.counter}/{self.patience}")
+            logging.info(f"⚠️ No improvement. EarlyStopping counter: {self.counter}/{self.patience}")
             '''Saves model when validation loss decreases.'''
             if self.counter >= self.patience: self.early_stop = True
 
@@ -160,7 +160,7 @@ def main():
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(log_file), # Saves to file
+            logging.FileHandler(log_file, mode='w'), # Saves to file
             logging.StreamHandler() # Still prints to screen
         ]
     )
@@ -247,10 +247,10 @@ def main():
         scheduler.step(epoch_v)
         early_stopper(epoch_v, model)
         
-        print(f"Epoch {epoch+1:02d}: Train Loss {epoch_t:.4f} | Val Loss {epoch_v:.4f}")
+        logging.info(f"Epoch {epoch+1:02d}: Train Loss {epoch_t:.4f} | Val Loss {epoch_v:.4f}")
         
         if early_stopper.early_stop:
-            print(f"🛑 Early stopping triggered. Best Val Loss: {early_stopper.best_loss:.4f}")
+            logging.info(f"🛑 Early stopping triggered. Best Val Loss: {early_stopper.best_loss:.4f}")
             break
 
     # 1. Get the path from config
