@@ -2,6 +2,7 @@ import os
 import random
 import yaml
 import joblib
+import logging
 import numpy as np
 import pandas as pd
 import torch
@@ -9,6 +10,8 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
+
+
 
 # --- REPRODUCIBILITY ---
 def set_reproducibility(seed):
@@ -127,8 +130,11 @@ class EarlyStopping:
         if self.best_loss is None or val_loss < self.best_loss:
             print(f"✅ Validation loss decreased ({self.best_loss} --> {val_loss:.4f}). Saving model...")
             self.best_loss = val_loss
-            torch.save(model.state_dict(), 
-                       "phase3/pipelines/titanic/artifacts/models/mlp.pt")
+
+            # 1. Ensure the directory exists before saving
+            os.makedirs(os.path.dirname(self.path), exist_ok=True)
+
+            torch.save(model.state_dict(), self.path)
             self.counter = 0
         else:
             self.counter += 1
@@ -142,6 +148,22 @@ def main():
     # 1. Load Configuration
     with open("config.yaml", "r") as f: 
         config = yaml.safe_load(f)
+
+    # 1. Get the path from config
+    log_file = config['outputs']['log_path']
+
+    # 2. Extract the folder name and create it if it's missing
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+
+    # 2. Configure logging to save to a file AND print to console
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file), # Saves to file
+            logging.StreamHandler() # Still prints to screen
+        ]
+    )
     
     set_reproducibility(config['train_params']['seed'])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -194,7 +216,7 @@ def main():
 
     # 5. Training Loop
     t_history, v_history = [], []
-    print(f"🚀 Starting training on {device}...")
+    logging.info(f"🚀 Starting training on {device}...")
     
     for epoch in range(config['train_params']['epochs']):
         # --- TRAINING ---
@@ -231,6 +253,12 @@ def main():
             print(f"🛑 Early stopping triggered. Best Val Loss: {early_stopper.best_loss:.4f}")
             break
 
+    # 1. Get the path from config
+    plot_file = config['outputs']['plot_path']
+
+    # 2. Extract the folder name and create it if it's missing
+    os.makedirs(os.path.dirname(plot_file), exist_ok=True)
+
     # 6. Save Plot
     plt.figure(figsize=(10, 6))
     plt.plot(t_history, label='Train Loss')
@@ -240,9 +268,9 @@ def main():
     plt.ylabel('Loss')
     plt.legend()
     plt.grid(True)
-    plt.savefig(config['outputs']['plot_path'])
+    plt.savefig(plot_file)
     plt.close()
-    print(f"📊 Plot saved to {config['outputs']['plot_path']}")
+    print(f"📊 Plot saved to {plot_file}")
 
 if __name__ == "__main__":
     main()

@@ -24,10 +24,12 @@ model_params:
 
 outputs:
   # Base directory for this version's outputs
-  artifacts_dir: "phase3/pipelines/titanic/artifacts"
+  artifacts_dir: "artifacts"
 
   # Specific file paths
   model_path: "artifacts/models/mlp.pt"
   stats_path: "artifacts/models/train_stats.joblib"
   metrics_path: "artifacts/metrics/metrics.json"
   plot_path: "artifacts/plots/loss_curve.png"
+  
+  log_path: "artifacts/logs/v1_stable_training.log"
