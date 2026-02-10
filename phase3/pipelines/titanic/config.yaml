@@ -27,7 +27,7 @@ outputs:
   artifacts_dir: "phase3/pipelines/titanic/artifacts"
 
   # Specific file paths
-  model_path: "phase3/pipelines/titanic/artifacts/models/mlp.pt"
-  stats_path: "phase3/pipelines/titanic/artifacts/models/train_stats.joblib"
-  metrics_path: "phase3/pipelines/titanic/artifacts/metrics/metrics.json"
-  plot_path: "phase3/pipelines/titanic/artifacts/plots/loss_curve.png"
+  model_path: "artifacts/models/mlp.pt"
+  stats_path: "artifacts/models/train_stats.joblib"
+  metrics_path: "artifacts/metrics/metrics.json"
+  plot_path: "artifacts/plots/loss_curve.png"
