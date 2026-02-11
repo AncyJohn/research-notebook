@@ -52,7 +52,7 @@ def evaluate():
         dropout=config['model_params']['dropout']
     ).to(device)
     
-    checkpoint = torch.load(config['outputs']['model_path'], map_location=device, weights_only=True)
+    checkpoint = torch.load(config['outputs']['model_path'], map_location=device, weights_only=False)
     model.load_state_dict(checkpoint['model_state_dict']) # Access the weights inside the dict
     model.eval()
 

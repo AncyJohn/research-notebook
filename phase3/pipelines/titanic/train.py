@@ -226,32 +226,33 @@ def main():
     )
     
     criterion = nn.BCEWithLogitsLoss()
-     # --- RESUME LOGIC ---
+
+    # --- RESUME LOGIC (Professional Checkpoint Style) ---
     checkpoint_path = config['outputs']['model_path']
-    best_val_loss = None # Track this to sync with EarlyStopping
+    
+    # Initialize EarlyStopping FIRST so we can update its best_loss if we find a file
+    early_stopper = EarlyStopping(config['train_params']['patience'], checkpoint_path)
 
     if os.path.exists(checkpoint_path):
-        logging.info(f"🔄 Found existing model at {checkpoint_path}. Resuming training...")
-        # Load weights
-        model.load_state_dict(torch.load(checkpoint_path, map_location=device, weights_only=True))
+        logging.info(f"🔄 Found existing checkpoint at {checkpoint_path}. Resuming...")
         
-        # IMPORTANT: Run one quick validation pass to get the baseline 'best_loss' 
-        # so EarlyStopping doesn't reset to 'None'
-        model.eval()
-        resume_loss = 0
-        with torch.no_grad():
-            for x, y in val_loader:
-                x, y = x.to(device), y.to(device)
-                resume_loss += criterion(model(x).view(-1), y).item() * x.size(0)
-        best_val_loss = resume_loss / len(val_ds)
-        logging.info(f"📈 Resumed with baseline Val Loss: {best_val_loss:.4f}")
+        # 1. Load the full dictionary
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+        
+        # 2. Restore Model Weights
+        model.load_state_dict(checkpoint['model_state_dict'])
+        
+        # 3. Restore Optimizer Memory (Momentum/Velocity)
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        
+        # 4. Sync the EarlyStopper so it knows the record to beat
+        early_stopper.best_loss = checkpoint['best_loss']
+        
+        logging.info(f"📈 Resumed from Epoch {checkpoint['epoch']} with Best Loss: {early_stopper.best_loss:.4f}")
     else:
         logging.info("🆕 No checkpoint found. Starting training from scratch.")
+    # ----------------------------------------------------
 
-    # Initialize EarlyStopping with the resumed best_loss
-    early_stopper = EarlyStopping(config['train_params']['patience'], checkpoint_path)
-    if best_val_loss:
-        early_stopper.best_loss = best_val_loss
 
     # 5. Training Loop
     t_history, v_history = [], []
