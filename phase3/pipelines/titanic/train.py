@@ -125,22 +125,36 @@ class BaselineNet(nn.Module): # The physical structure of the brain (the neurons
 class EarlyStopping:
     def __init__(self, patience, path):
         self.patience, self.path, self.counter, self.best_loss, self.early_stop = patience, path, 0, None, False
-    def __call__(self, val_loss, model):
-        # print(f"DEBUG: val_loss={val_loss:.4f}, best_loss={self.best_loss}")
-        if self.best_loss is None or val_loss < self.best_loss:
-            logging.info(f"✅ Validation loss decreased ({self.best_loss} --> {val_loss:.4f}). Saving model...")
-            self.best_loss = val_loss
 
-            # 1. Ensure the directory exists before saving
+    def __call__(self, val_loss, model, optimizer, epoch):  # Added optimizer and epoch
+        if self.best_loss is None or val_loss < self.best_loss:
+            if self.best_loss is not None:
+                logging.info(f"✅ Validation loss decreased ({self.best_loss:.4f} --> {val_loss:.4f}). Saving checkpoint...")
+            else:
+                logging.info(f"✅ Initial model saved with loss: {val_loss:.4f}")
+            
+            self.best_loss = val_loss
+            self.counter = 0
+
+            # 1. Ensure the directory exists
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
 
-            torch.save(model.state_dict(), self.path)
-            self.counter = 0
+            # 2. Create the full checkpoint dictionary
+            checkpoint = {
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'best_loss': self.best_loss
+            }
+
+            # 3. Save the full state (Professional approach)
+            torch.save(checkpoint, self.path)
         else:
             self.counter += 1
             logging.info(f"⚠️ No improvement. EarlyStopping counter: {self.counter}/{self.patience}")
-            '''Saves model when validation loss decreases.'''
-            if self.counter >= self.patience: self.early_stop = True
+            if self.counter >= self.patience: 
+                self.early_stop = True
+
 
 
 # --- MAIN ENGINE ---
@@ -149,13 +163,13 @@ def main():
     with open("config.yaml", "r") as f: 
         config = yaml.safe_load(f)
 
-    # 1. Get the path from config
+    # 2. Get the path from config for log_file
     log_file = config['outputs']['log_path']
 
-    # 2. Extract the folder name and create it if it's missing
+    #  Extract the folder name and create it if it's missing
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
-    # 2. Configure logging to save to a file AND print to console
+    # Configure logging to save to a file AND print to console
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -172,7 +186,7 @@ def main():
     print(f"Reading data from: {config['data']['raw_path']}")
     df = pd.read_csv(config['data']['raw_path'])
     
-    # Corrected: Stratify ensures the class balance is kept across splits
+    # Stratify ensures the class balance is kept across splits
     train_df, val_df = train_test_split(
         df, 
         test_size=config['train_params']['test_size'], 
@@ -212,7 +226,32 @@ def main():
     )
     
     criterion = nn.BCEWithLogitsLoss()
-    early_stopper = EarlyStopping(config['train_params']['patience'], config['outputs']['model_path'])
+     # --- RESUME LOGIC ---
+    checkpoint_path = config['outputs']['model_path']
+    best_val_loss = None # Track this to sync with EarlyStopping
+
+    if os.path.exists(checkpoint_path):
+        logging.info(f"🔄 Found existing model at {checkpoint_path}. Resuming training...")
+        # Load weights
+        model.load_state_dict(torch.load(checkpoint_path, map_location=device, weights_only=True))
+        
+        # IMPORTANT: Run one quick validation pass to get the baseline 'best_loss' 
+        # so EarlyStopping doesn't reset to 'None'
+        model.eval()
+        resume_loss = 0
+        with torch.no_grad():
+            for x, y in val_loader:
+                x, y = x.to(device), y.to(device)
+                resume_loss += criterion(model(x).view(-1), y).item() * x.size(0)
+        best_val_loss = resume_loss / len(val_ds)
+        logging.info(f"📈 Resumed with baseline Val Loss: {best_val_loss:.4f}")
+    else:
+        logging.info("🆕 No checkpoint found. Starting training from scratch.")
+
+    # Initialize EarlyStopping with the resumed best_loss
+    early_stopper = EarlyStopping(config['train_params']['patience'], checkpoint_path)
+    if best_val_loss:
+        early_stopper.best_loss = best_val_loss
 
     # 5. Training Loop
     t_history, v_history = [], []
@@ -245,7 +284,7 @@ def main():
         
         # Step the scheduler and the early stopper
         scheduler.step(epoch_v)
-        early_stopper(epoch_v, model)
+        early_stopper(epoch_v, model, optimizer, epoch)
         
         logging.info(f"Epoch {epoch+1:02d}: Train Loss {epoch_t:.4f} | Val Loss {epoch_v:.4f}")
         
@@ -253,13 +292,13 @@ def main():
             logging.info(f"🛑 Early stopping triggered. Best Val Loss: {early_stopper.best_loss:.4f}")
             break
 
-    # 1. Get the path from config
+    # 6. Get the path from config
     plot_file = config['outputs']['plot_path']
 
-    # 2. Extract the folder name and create it if it's missing
+    # Extract the folder name and create it if it's missing
     os.makedirs(os.path.dirname(plot_file), exist_ok=True)
 
-    # 6. Save Plot
+    # Save Plot
     plt.figure(figsize=(10, 6))
     plt.plot(t_history, label='Train Loss')
     plt.plot(v_history, label='Val Loss')

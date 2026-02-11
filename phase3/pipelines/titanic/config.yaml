@@ -31,5 +31,4 @@ outputs:
   stats_path: "artifacts/models/train_stats.joblib"
   metrics_path: "artifacts/metrics/metrics.json"
   plot_path: "artifacts/plots/loss_curve.png"
-  
   log_path: "artifacts/logs/v1_stable_training.log"
