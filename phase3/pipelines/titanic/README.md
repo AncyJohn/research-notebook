@@ -1,39 +1,35 @@
-Titanic Survival Predictor: Stable Baseline Pipeline
+# Titanic ML Pipeline: Professional Baseline
 
-🚀 Project Overview
-This project implements a professional machine learning pipeline to predict passenger survival on the Titanic. The system has been refactored from a non-linear notebook into a Modular, Reproducible, and Production-Ready architecture designed to eliminate data leakage and "hidden state" bugs.
+A modular, production-ready PyTorch pipeline for stratified survival prediction. This architecture prioritizes **strict state isolation** and **deterministic reproducibility** to eliminate "hidden state" bugs and data leakage.
+
+## 🚀 Quick Start
+1. **Clone & Setup**:
+   ```bash
+   git clone 'https://github.com/AncyJohn/research-notebook.git'
+   cd phase3/pipelines/titanic
+   pip install -r requirements.txt
+
+2. Execute Pipelin:
+    python run.py
 
 📊 Final Evaluation Results
 The model was verified using a stratified validation set. The following results represent the performance of the "Best Brain" weights preserved by the Early Stopping system.
-Core Metrics:
-Final Accuracy: 0.8045 (80.45%)
-Macro F1-Score: 0.78
-Weighted Avg F1: 0.80
-Detailed Classification Report:
-Class	Precision	Recall	F1-Score	Support
-0 (Victims)	0.80	0.90	0.85	110
-1 (Survivors)	0.80	0.65	0.72	69
-The model demonstrates high reliability, particularly in identifying Class 0 with 90% recall, ensuring a robust baseline for safety-critical analysis.
+Metric	Value
+Accuracy	80.45%
+Macro F1-Score	0.78
+Weighted F1	0.80
+Class 0 (Victims) Recall	0.90
+Audited via stratified validation using the evaluate.py independent auditor.
 
-🛠️ Pipeline Architecture
-The project follows a "Stateless" design where code, configuration, and data artifacts are strictly separated:
-config.yaml: Centralized source of truth for all hyperparameters (LR: 1e-3, Batch Size: 256, Seed: 42) and I/O paths.
-train.py: Automated training engine. Features include deterministic GPU seeding, leakage-free scaling, and automated training history logging.
-evaluate.py: Independent auditor script. Reconstructs the validation environment and verifies the saved artifacts.
-PreprocessingDataset: A custom PyTorch Dataset class that handles missing values and categorical encoding using training-set statistics to prevent snooping.
+🏗️ Architecture & Artifacts
+The system follows a "Stateless" design where hyperparameters and I/O paths are managed via config.yaml.
+Orchestration: run.py (Executes training followed by evaluation).
+Models: artifacts/models/mlp.pt (Full-state dictionary including optimizer momentum).
+Metadata: artifacts/models/train_stats.joblib (Leakage-free scaling parameters).
+Reporting: artifacts/metrics/metrics.json and artifacts/plots/loss_curve.png.
 
-📦 Generated Artifacts
-Every successful run produces the following deployment-ready files:
-best_model.pt: Optimized PyTorch state dictionary.
-train_stats.joblib: Encrypted preprocessing metadata (means/mappings) required for consistent inference.
-loss_curve.png: Diagnostic visualization of the Training vs. Validation loss.
+🧠 Engineering Reflection
+Transitioning from a non-linear notebook to this Modular Pipeline Architecture represents a shift from "experimental scripting" to "machine learning engineering."
+By implementing Full-State Checkpointing, the system ensures that training resumes are mathematically seamless, preserving optimizer velocity and historical best loss. The separation of the PreprocessingDataset logic ensures that training statistics are strictly applied during inference, guaranteeing the model's integrity against data snooping. This repository now serves as a high-integrity template for scalable predictive modeling.
 
-💻 How to Run
-Ensure your environment has the required libraries (torch, yaml, joblib, sklearn, pandas).
-Train the Model:
-python train.py
-
-Verify Results:
-python evaluate.py
-
-Project Complete. Now we have a high-integrity repository that serves as a template for future predictive modeling.
+Status: Project Complete | Environment: Cross-Platform (Win/Linux/Colab)

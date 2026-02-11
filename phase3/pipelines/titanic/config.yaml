@@ -3,7 +3,8 @@ project_name: "titanic-baseline"
 experiment_version: "v1.1-stable"
 
 data:
-  raw_path: "../../../train.csv"
+  #raw_path: "../../../train.csv"
+  raw_path: "https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv"
   target: "Survived"
   drop_columns: ['PassengerId', 'Name', 'Ticket', 'Cabin']
 
@@ -15,6 +16,7 @@ train_params:
   weight_decay: 0.01
   epochs: 100
   patience: 10    # Early stopping
+  
   scheduler_factor: 0.5
   scheduler_patience: 5
 
