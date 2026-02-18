@@ -67,3 +67,8 @@ In a professional data science pipeline, the generated files are the **artifact
 | **`.pt`** | Saved Model | Primary goal of the project. |
 | **`.joblib`** | Preprocessing Data | Essential for consistent predictions. |
 | **`.png`** | Performance Visual | Diagnostic proof for the README. |
+
+Why use run.py instead of run.sh?
+Universal: It works in PowerShell, Command Prompt, Linux, and Colab without any extra commands like chmod.
+No Permissions needed: Just run python run.py.
+Error Handling: It uses check=True to stop exactly like set -e does in Bash.
