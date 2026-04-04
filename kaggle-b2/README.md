@@ -1,33 +1,41 @@
-1. Create the package structure
-For Python to recognize your shared folders as modules you can import from, you must have a file named __init__.py in each folder. They can be completely empty.
+# Kaggle-B2: Deep Learning Research Framework
 
-Create these empty files:
-E:/research-notebook/kaggle-b2/shared/__init__.py
-E:/research-notebook/kaggle-b2/shared/utils/__init__.py
-E:/research-notebook/kaggle-b2/shared/configs/__init__.py
-E:/research-notebook/kaggle-b2/shared/training/__init__.py
+A reproducible, professional-grade framework for competing in Kaggle tabular, NLP, and CV competitions. This repository is structured to beat classical ML by implementing Deep Learning best practices like Entity Embeddings, Residual Connections, and Stratified K-Fold Cross-Validation.
 
-2. The core config logic
-The core config logic handles the path "bridge" between your local drive and Kaggle. It ensures that no matter where the code runs, it can find the shared folder.
-Create E:/research-notebook/kaggle-b2/shared/configs/base_config.py:
+## 📂 Project Structure
+```text
+kaggle-b2/
+├── shared/                 # Core reusable logic
+│   ├── configs/            # Experiment hyperparameter schemas
+│   ├── training/           # Model architectures, Trainers, and Datasets
+│   └── utils/              # Reproducibility (seeding) and Logging
+├── competitions/           # Competition-specific notebooks/scripts
+│   └── titanic-redux/      # Baseline Deep Learning for Titanic
+├── artifacts/              # Local storage for weights (.pth) and logs
+├── setup.py                # Package installation script
+└── requirements.txt        # Environment dependencies
 
-3. Global utilities (Seeding & Logging)
-For a "Clean DL" win, reproducibility is mandatory. This utility ensures your results are the same every time you run the code. 
-Create E:/research-notebook/kaggle-b2/shared/utils/general.py:
+🚀 Getting Started
+1. Environment Setup
+Install the shared module as an editable package to enable clean imports:
+bash
+pip install -r requirements.txt
+pip install -e .
+Use code with caution.
 
-4. The Titanic Notebook (Header & Data)
-set up the notebook in your competition folder. This uses kagglehub to fetch data without you needing to manually download files to your E: drive.
-Create: E:/research-notebook/kaggle-b2/competitions/titanic-redux/titanic_dl.ipynb
-Cell 1 (Config):
-
-5. Data processing
-Titanic is tabular. Standard ML uses One-Hot Encoding. For a "Clean DL" win, we will use Entity Embeddings. We'll prepare a script in shared that converts Titanic columns into indices for an nn.Embedding layer.
-Create E:/research-notebook/kaggle-b2/shared/processing/tabular.py:
-
-6. The Model Architecture
-Back in your Titanic Notebook, define a model that uses these embeddings. This is how you "beat classic ML cleanly."
-
-7. Restart-Safe Training Loop
-The final logical step for the local code is a training loop that saves the model weights to the ARTIFACT_DIR
-
-
+2. The Research Workflow
+This framework follows a 4-phase discipline test:
+Configuration: Defined in shared/configs/, ensuring all hyperparameters are tracked.
+Preprocessing: Utilizes Entity Embeddings for categorical features and StandardScaler for numerical stability.
+Cross-Validation: 5-Fold Stratified CV with Out-of-Fold (OOF) prediction tracking to ensure the CV score is a reliable proxy for the leaderboard.
+Inference: Ensemble averaging across all fold models to reduce variance.
+🧠 Model Philosophy (Tabular DL)
+To "cleanly" beat classical ML (XGBoost/Random Forest), this framework implements:
+Entity Embeddings: Learning multi-dimensional vectors for categories (Title, Pclass, Sex).
+Residual Connections: Preventing gradient vanishing on small datasets.
+Label Smoothing & Weight Decay: Advanced regularisation to prevent overfitting on small-n data.
+🛠️ Usage on Kaggle
+To use the shared library on Kaggle:
+Upload the shared/ folder as a Private Dataset.
+Install it in your notebook: !pip install /kaggle/input/your-dataset-name/.
+Import via: from shared.training import DLTrainer.

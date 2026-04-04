@@ -1,24 +1,23 @@
-import os
-import sys
+from dataclasses import dataclass
+from typing import Any, Dict
+import torch
 
-def setup_environment(subfolder="kaggle-b2"):
-    """Handles paths for subfolder-based repos."""
-    is_kaggle = os.path.exists('/kaggle/working') # Detect if we are on Kaggle
+@dataclass
+class BaseConfig:
+    # Experiment Metadata
+    seed: int = 42
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
     
-    if is_kaggle:
-        # On Kaggle, the repo root is /kaggle/working/research-notebook
-        # We need to add the subfolder to the path
-        root = f"/kaggle/working/research-notebook/{subfolder}"
-        artifacts = "/kaggle/working/artifacts"
-    else:
-        # Local E: Drive logic
-        # Finds the 'kaggle-b2' directory relative to the notebook
-        root = os.path.abspath(os.path.join(os.getcwd(), "../../"))
-        artifacts = os.path.join(os.getcwd(), "artifacts")
-        
-    # Ensure the 'kaggle-b2' folder is in Python's search path
-    if root not in sys.path:
-        sys.path.append(root)
-        
-    os.makedirs(artifacts, exist_ok=True)
-    return root, artifacts, is_kaggle
+    # Training Hyperparameters
+    epochs: int = 100
+    early_stopping_patience: int = 10
+    batch_size: int = 64
+    learning_rate: float = 1e-3
+    weight_decay: float = 1e-5
+    
+    # Pathing (Passed in at runtime)
+    artifacts_path: str = "artifacts"
+    
+    def to_dict(self) -> Dict[str, Any]:
+        # Professional touch: Convert dataclass to dict for JSON logging
+        return self.__dict__

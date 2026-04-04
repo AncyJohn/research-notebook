@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data & Artifacts
+artifacts/
+*.pth
+*.pkl
+*.npy
+data/
+
+# Environments
+venv/
+.env
